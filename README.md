@@ -4,6 +4,9 @@ Udacity Self Driving Car
 
 Project Repo for Planning Project
 
+This code runs a path planning algorithm to drive the car in the udacity self driving car simulator
+
+
 # Notes:
 
 Starter code from https://github.com/udacity/CarND-Path-Planning-Project.git
