@@ -9,6 +9,8 @@ This code runs a path planning algorithm to drive the car in the udacity self dr
 # Functions to build
 
 Hybrid A* 
+Trajectory Planning
+
 
 # Notes:
 
