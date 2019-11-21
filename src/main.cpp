@@ -55,7 +55,7 @@ int main() {
   // add lane numbers and reference speeds
 
   int lane = 1;
-  double ref_vel = 49.5; //mph
+  double ref_vel = 0.0; //mph
 
   h.onMessage([&map_waypoints_x,&map_waypoints_y,&map_waypoints_s,
                &map_waypoints_dx,&map_waypoints_dy]
@@ -113,6 +113,35 @@ int main() {
           }
 
           bool too_close = false;
+
+          for(int i = 0; i < sensor_fusion.size(); i++) 
+          {
+            float d = sensor_fusion[i][6];
+            if (d < (2+4*lane+2) && d > (2+4*lane-2))
+            {
+              double vx = sensor_fusion[i][3];
+              double vy = sensor_fusion[i][4];
+              double check_speed = sqrt(vx*vx+vy*vy);
+              double check_car_s = sensor_fusion[i][5];
+
+              check_car_s += ((double)prev_size*.02*check_speed);
+              if((check_car_s>car_s) && (check_car_s-car_s) < 30)
+              {
+                // do some logic to prevent crash
+                too_close = true;
+                // need to consider resetting this as well to speed back up
+              }
+            }
+          }
+
+          if (too_close) 
+          {
+            ref_vel -= .224;
+          }
+          else if (ref_vel < 49.5)
+          {
+            ref_vel += .224;
+          }
 
           //to finish
 
