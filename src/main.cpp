@@ -114,6 +114,7 @@ int main() {
 
           bool too_close = false;
 
+          // TODO probably around here to decompose the sensor_fusion logic
           for(int i = 0; i < sensor_fusion.size(); i++) 
           {
             float d = sensor_fusion[i][6];
@@ -130,10 +131,16 @@ int main() {
                 // do some logic to prevent crash
                 too_close = true;
                 // need to consider resetting this as well to speed back up
+
+                // lane change logic - need to add in lane change logic to cost up change
+                if(lane > 0)
+                {
+                  lane = 0;
+                }
               }
             }
           }
-
+          // uses too close flag to increase or decrease the speed
           if (too_close) 
           {
             ref_vel -= .224;
@@ -148,10 +155,14 @@ int main() {
           vector<double> ptsx;
           vector<double> ptsy;
 
+          // current car pos
           double ref_x = car_x;
           double ref_y = car_y;
           double ref_yaw = deg2rad(car_yaw);
 
+
+          // previous trajectory
+          // integrate previous trajectory to stop jerk
           if(prev_size < 2) {
             double prev_car_x = car_x - cos(car_yaw);
             double prev_car_y = car_y - sin(car_yaw);
@@ -177,6 +188,8 @@ int main() {
 
           }
 
+          // in Frenet add evenly 30m spaced points ahead of the starting ref
+          // lane chooses lane
           vector<double> next_wp0 = getXY(car_s + 30, (2+4*lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
           vector<double> next_wp1 = getXY(car_s + 60, (2+4*lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
           vector<double> next_wp2 = getXY(car_s + 90, (2+4*lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
@@ -198,6 +211,7 @@ int main() {
             ptsy[i] = (shift_x*cos(0-ref_yaw)+shift_y*sin(0-ref_yaw));
           }
 
+          // spline logic to smooth out waypoints
           tk::spline s;
 
           s.set_points(ptsx,ptsy);
@@ -215,7 +229,7 @@ int main() {
           double x_add_on = 0;
 
           for (int i = 1; i <= 50 - previous_path_x.size(); i++) {
-            double N = (target_dist/(.02*ref_vel/2.24));
+            double N = (target_dist/(.02*ref_vel/2.24)); // better to plan accel decell here
             double x_point = x_add_on+(target_x)/N;
             double y_point = s(x_point);
 
@@ -230,10 +244,12 @@ int main() {
             x_point += ref_x;
             y_point += ref_y;
 
-
+            // generate the next waypoints to guide car
             next_x_vals.push_back(x_point);
             next_y_vals.push_back(y_point);
           }
+
+          // end of custom code
 
 
           msgJson["next_x"] = next_x_vals;
