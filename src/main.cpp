@@ -118,6 +118,9 @@ int main() {
           for(int i = 0; i < sensor_fusion.size(); i++) 
           {
             float d = sensor_fusion[i][6];
+            // d determines the lane - > for each car find the lane
+            // then work out whether it is in front of behind our car
+            
             if (d < (2+4*lane+2) && d > (2+4*lane-2))
             {
               double vx = sensor_fusion[i][3];
