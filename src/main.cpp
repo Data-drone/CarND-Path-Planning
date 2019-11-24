@@ -14,7 +14,7 @@ using nlohmann::json;
 using std::string;
 using std::vector;
 
-int getLane(int d_value) {
+int getLane(double d_value) {
 
   // return the lane of the vehicle
   if (d_value > 0 && d_value < 4) {
@@ -67,9 +67,9 @@ int main() {
 
   // code from tutorial
   // add lane numbers and reference speeds
-
-  int lane = 1;
-  double ref_vel = 0.0; //mph
+  // we need to move this
+  //int lane = 1;
+  //double ref_vel = 0.0; //mph
 
   h.onMessage([&map_waypoints_x,&map_waypoints_y,&map_waypoints_s,
                &map_waypoints_dx,&map_waypoints_dy]
@@ -97,6 +97,10 @@ int main() {
           double car_d = j[1]["d"];
           double car_yaw = j[1]["yaw"];
           double car_speed = j[1]["speed"];
+
+          // get current lane
+          int lane = getLane(car_d);
+          double ref_vel = car_speed;
 
           // Previous path data given to the Planner
           auto previous_path_x = j[1]["previous_path_x"];
@@ -137,7 +141,7 @@ int main() {
 
             int sense_car_lane = getLane(d);
 
-            if (sense_car_lane == lane)
+            if (d < (2+4*lane+2) && d > (2+4*lane-2))
             {
               double vx = sensor_fusion[i][3];
               double vy = sensor_fusion[i][4];
@@ -154,7 +158,7 @@ int main() {
                 // lane change logic - need to add in lane change logic to cost up change
                 if(lane = 1)
                 {
-                  lane = 0; // need some logic to decide when to move
+                  lane = 0; // need some
                 } else if (lane = 0 ) {
                   lane = 1;
                 } else if (lane = 2) {
@@ -183,12 +187,13 @@ int main() {
           double ref_y = car_y;
           double ref_yaw = deg2rad(car_yaw);
 
-
+          double prev_car_x;
+          double prev_car_y;
           // previous trajectory
           // integrate previous trajectory to stop jerk
           if(prev_size < 2) {
-            double prev_car_x = car_x - cos(car_yaw);
-            double prev_car_y = car_y - sin(car_yaw);
+            prev_car_x = car_x - cos(car_yaw);
+            prev_car_y = car_y - sin(car_yaw);
 
             ptsx.push_back(prev_car_x);
             ptsx.push_back(car_x);
@@ -225,7 +230,7 @@ int main() {
           ptsy.push_back(next_wp1[0]);
           ptsy.push_back(next_wp2[0]);
 
-          for (int i = 0l i < ptsx.size(); i++)
+          for (int i = 0; i < ptsx.size(); i++)
           {
             double shift_x = ptsx[i]-ref_x;
             double shift_y = ptsx[i]-ref_y;
@@ -239,7 +244,7 @@ int main() {
 
           s.set_points(ptsx,ptsy);
 
-          for(int i=0; i<previous_path_x,size();i++)
+          for(int i=0; i<previous_path_x.size();i++)
           {
             next_x_vals.push_back(previous_path_x[i]);
             next_y_vals.push_back(previous_path_y[i]);
