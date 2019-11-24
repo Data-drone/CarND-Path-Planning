@@ -14,6 +14,20 @@ using nlohmann::json;
 using std::string;
 using std::vector;
 
+int getLane(int d_value) {
+
+  // return the lane of the vehicle
+  if (d_value > 0 && d_value < 4) {
+    return 0;
+  } else if (d_value > 4 && d_value < 8) {
+    return 1;
+  }
+
+  return 2;
+}
+
+
+
 int main() {
   uWS::Hub h;
 
@@ -120,8 +134,10 @@ int main() {
             float d = sensor_fusion[i][6];
             // d determines the lane - > for each car find the lane
             // then work out whether it is in front of behind our car
-            
-            if (d < (2+4*lane+2) && d > (2+4*lane-2))
+
+            int sense_car_lane = getLane(d);
+
+            if (sense_car_lane == lane)
             {
               double vx = sensor_fusion[i][3];
               double vy = sensor_fusion[i][4];
@@ -136,9 +152,13 @@ int main() {
                 // need to consider resetting this as well to speed back up
 
                 // lane change logic - need to add in lane change logic to cost up change
-                if(lane > 0)
+                if(lane = 1)
                 {
-                  lane = 0;
+                  lane = 0; // need some logic to decide when to move
+                } else if (lane = 0 ) {
+                  lane = 1;
+                } else if (lane = 2) {
+                  lane = 1;
                 }
               }
             }
