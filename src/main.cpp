@@ -141,7 +141,7 @@ int main() {
 
             int sense_car_lane = getLane(d);
 
-            if (d < (2+4*lane+2) && d > (2+4*lane-2))
+            if (sense_car_lane == lane)
             {
               double vx = sensor_fusion[i][3];
               double vy = sensor_fusion[i][4];
@@ -201,8 +201,8 @@ int main() {
             ptsy.push_back(prev_car_y);
             ptsy.push_back(car_y);
           } else {
-            ref_x = prev_car_x[prev_size-1];
-            ref_y = prev_car_y[prev_size-1];
+            ref_x = previous_path_x[prev_size-1];
+            ref_y = previous_path_y[prev_size-1];
 
             double ref_x_prev = previous_path_x[prev_size-2];
             double ref_y_prev = previous_path_y[prev_size-2];
