@@ -32,6 +32,12 @@ In this scenarios there are three decisions that the car has to make:
 - Change Left
 - Change Right
 
+## Decision Criteria
+
+If the car is stuck behind a slow car and there is an adjacent lane clear then the car should switch lane. For the middle lane, we will have to create some way to decide whether to go left or right.
+
+We should look at:
+- 
 
 # Notes:
 
