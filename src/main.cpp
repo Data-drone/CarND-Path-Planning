@@ -17,10 +17,15 @@ using std::vector;
 int getLane(double d_value) {
 
   // return the lane of the vehicle
-  if (d_value > 0 && d_value < 4) {
+  if (d_value > 0 && d_value < 4) 
+  {
     return 0;
-  } else if (d_value > 4 && d_value < 8) {
+  } else if (d_value > 4 && d_value < 8) 
+  {
     return 1;
+  } else if (d_value > 8 && d_value < 12) 
+  {
+    return 2;
   }
 
   return 2;
@@ -53,7 +58,7 @@ bool tooFrontClose(vector<double> sensor_fusion, int size, double my_car_s)
 
   check_car_s += ((double)size*.02*check_speed);
               
-  if((check_car_s>my_car_s) && (check_car_s-my_car_s) < 50)
+  if((check_car_s>my_car_s) && (check_car_s-my_car_s) < 30)
   {
   // do some logic to prevent crash
     return true;
@@ -178,7 +183,7 @@ int main() {
           int car_current_lane = getLane(car_d);
           //std::cout << car_current_lane << std::endl;
 
-          vector<int> lane_options = laneOptions(car_current_lane);
+          vector<int> lane_options = laneOptions(lane);
 
           for(int i = 0; i < sensor_fusion.size(); i++) 
           {
@@ -189,15 +194,33 @@ int main() {
             // get car lane of detected car
             int other_car_lane = getLane(d);
 
+            //get other car details
+            double vx = sensor_fusion[i][3];
+            double vy = sensor_fusion[i][4];
+            double check_speed = sqrt(vx*vx+vy*vy);
+            double check_car_s = sensor_fusion[i][5];
+
+            check_car_s += ((double)prev_size*.02*check_speed);
+
             // in the other car is in our lane
-            if (other_car_lane == car_current_lane)
-            {
-              too_close = tooFrontClose(sensor_fusion[i], prev_size, car_s);
+            if (other_car_lane == lane)
+            {                            
+              if((check_car_s>car_s) && (check_car_s-car_s) < 30)
+              {
+                // do some logic to prevent crash
+                too_close = true;
+              }
+              //too_close = tooFrontClose(sensor_fusion[i], prev_size, car_s);
             } 
 
             if (std::find(lane_options.begin(), lane_options.end(), other_car_lane) != lane_options.end() ) 
-            {
-              too_close_for_change = tooCloseEitherWay(sensor_fusion[i], prev_size, car_s);
+            {               
+              if( std::abs(check_car_s-car_s) < 30)
+              {
+                // do some logic to prevent crash
+                too_close_for_change = true;
+              }
+              //too_close_for_change = tooCloseEitherWay(sensor_fusion[i], prev_size, car_s);
 
               if (too_close_for_change) {
                 // add it to lane_options
@@ -223,7 +246,8 @@ int main() {
             ref_vel += .224;
           }
 
-          if (too_close && !lane_options.empty()) {
+          if ( too_close && !lane_options.empty() ) 
+          {
             lane = lane_options[0];
           }
 
