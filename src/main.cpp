@@ -48,45 +48,6 @@ vector<int> laneOptions(int cur_lane)
   return options;
 }
 
-// checks if there are cars in front that are too close
-bool tooFrontClose(vector<double> sensor_fusion, int size, double my_car_s) 
-{
-  double vx = sensor_fusion[3];
-  double vy = sensor_fusion[4];
-  double check_speed = sqrt(vx*vx+vy*vy);
-  double check_car_s = sensor_fusion[5];
-
-  check_car_s += ((double)size*.02*check_speed);
-              
-  if((check_car_s>my_car_s) && (check_car_s-my_car_s) < 30)
-  {
-  // do some logic to prevent crash
-    return true;
-  }
-              
-  return false;
-}
-
-// checks if there are cars behind that are too cloes for a lane change
-bool tooCloseEitherWay(vector<double> sensor_fusion, int size, double my_car_s) 
-{
-  double vx = sensor_fusion[3];
-  double vy = sensor_fusion[4];
-  double check_speed = sqrt(vx*vx+vy*vy);
-  double check_car_s = sensor_fusion[5];
-
-  check_car_s += ((double)size*.02*check_speed);
-              
-  if( std::abs(check_car_s-my_car_s) < 30)
-  {
-  // do some logic to prevent crash
-    return true;
-  }
-              
-  return false;
-}
-
-
 int main() {
   uWS::Hub h;
 
