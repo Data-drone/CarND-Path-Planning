@@ -26,6 +26,60 @@ int getLane(double d_value) {
   return 2;
 }
 
+// checks which lanes are viable to switch into
+vector<int> laneOptions(int cur_lane) 
+{
+  vector<int> options;
+  if (cur_lane == 0) 
+  {
+    options.push_back(1);
+  } else if (cur_lane == 1) {
+    options.push_back(0);
+    options.push_back(2);
+  } else if (cur_lane == 2) {
+    options.push_back(1);
+  }
+
+  return options;
+}
+
+// checks if there are cars in front that are too close
+bool tooFrontClose(vector<double> sensor_fusion, int size, double my_car_s) 
+{
+  double vx = sensor_fusion[3];
+  double vy = sensor_fusion[4];
+  double check_speed = sqrt(vx*vx+vy*vy);
+  double check_car_s = sensor_fusion[5];
+
+  check_car_s += ((double)size*.02*check_speed);
+              
+  if((check_car_s>my_car_s) && (check_car_s-my_car_s) < 50)
+  {
+  // do some logic to prevent crash
+    return true;
+  }
+              
+  return false;
+}
+
+// checks if there are cars behind that are too cloes for a lane change
+bool tooCloseEitherWay(vector<double> sensor_fusion, int size, double my_car_s) 
+{
+  double vx = sensor_fusion[3];
+  double vy = sensor_fusion[4];
+  double check_speed = sqrt(vx*vx+vy*vy);
+  double check_car_s = sensor_fusion[5];
+
+  check_car_s += ((double)size*.02*check_speed);
+              
+  if( std::abs(check_car_s-my_car_s) < 30)
+  {
+  // do some logic to prevent crash
+    return true;
+  }
+              
+  return false;
+}
 
 
 int main() {
@@ -118,42 +172,46 @@ int main() {
           }
 
           bool too_close = false;
+          bool too_close_for_change = false;
 
-          // TODO probably around here to decompose the sensor_fusion logic
+          // work out current lane and see what we can do:
+          int car_current_lane = getLane(car_d);
+          //std::cout << car_current_lane << std::endl;
+
+          vector<int> lane_options = laneOptions(car_current_lane);
+
           for(int i = 0; i < sensor_fusion.size(); i++) 
           {
             float d = sensor_fusion[i][6];
             // d determines the lane - > for each car find the lane
             // then work out whether it is in front of behind our car
 
-            int sense_car_lane = getLane(d);
+            // get car lane of detected car
+            int other_car_lane = getLane(d);
 
-            if (sense_car_lane == lane)
+            // in the other car is in our lane
+            if (other_car_lane == car_current_lane)
             {
-              double vx = sensor_fusion[i][3];
-              double vy = sensor_fusion[i][4];
-              double check_speed = sqrt(vx*vx+vy*vy);
-              double check_car_s = sensor_fusion[i][5];
+              too_close = tooFrontClose(sensor_fusion[i], prev_size, car_s);
+            } 
 
-              check_car_s += ((double)prev_size*.02*check_speed);
-              if((check_car_s>car_s) && (check_car_s-car_s) < 30)
-              {
-                // do some logic to prevent crash
-                too_close = true;
-                // need to consider resetting this as well to speed back up
+            if (std::find(lane_options.begin(), lane_options.end(), other_car_lane) != lane_options.end() ) 
+            {
+              too_close_for_change = tooCloseEitherWay(sensor_fusion[i], prev_size, car_s);
 
-                // lane change logic - need to add in lane change logic to cost up change
-                if(lane == 1)
-                {
-                  lane = 0; // need some
-                } else if (lane == 0 ) {
-                  lane = 1;
-                } else if (lane == 2) {
-                  lane = 1;
-                }
-              }
+              if (too_close_for_change) {
+                // add it to lane_options
+               lane_options.erase(std::remove(lane_options.begin(), lane_options.end(), other_car_lane), lane_options.end());
+              } 
             }
           }
+
+          // std::cout << "too_close: " << too_close << " too_close_change: " << too_close_for_change << std::endl;
+
+
+          // we need to spit out options here after the detect routine
+          // we should know if cars to left or right options to go left or right
+          // maybe a cost function result
 
           // uses too close flag to increase or decrease the speed
           if (too_close) 
@@ -163,6 +221,10 @@ int main() {
           else if (ref_vel < 49.5)
           {
             ref_vel += .224;
+          }
+
+          if (too_close && !lane_options.empty()) {
+            lane = lane_options[0];
           }
 
           //to finish
